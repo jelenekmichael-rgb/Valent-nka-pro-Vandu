@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>For My Valentine 💌</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --pink: #FF6B9D;
+            --hot-pink: #FF2D78;
+            --light-pink: #FFE0ED;
+            --peach: #FFB347;
+            --lavender: #C9A0F5;
+            --cream: #FFF5F8;
+            --env-body: #fff0f5;
+            --env-shadow: #f8c8d8;
+            --env-fold: #ffd6e7;
+            --env-border: #ffaacb;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        body {
+            background: linear-gradient(145deg, #ffe4ef 0%, #ffd6f0 40%, #f8e4ff 100%);
+            font-family: 'Nunito', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* ---- BG dots ---- */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(circle, #FF6B9D18 2px, transparent 2px);
+            background-size: 28px 28px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ============================
+       ENVELOPE SCREEN
+    ============================= */
+        #envelope-screen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            z-index: 10;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        #envelope-screen.hiding {
+            opacity: 0;
+            transform: scale(0.85);
+            pointer-events: none;
+        }
+
+        .swipe-hint {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--hot-pink);
+            letter-spacing: 0.04em;
+            text-align: center;
+            animation: bounce 1.5s ease-in-out infinite;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            opacity: 0;
+            animation: fadeInBounce 1s 0.8s both;
+        }
+
+        .swipe-arrow {
+            font-size: 1.6rem;
+            animation: swipeAnim 1.4s ease-in-out infinite;
+        }
+
+        @keyframes swipeAnim {
+
+            0%,
+            100% {
+                transform: translateX(-10px);
+                opacity: 0.4;
+            }
+
+            50% {
+                transform: translateX(10px);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInBounce {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ---- The Envelope ---- */
+        .envelope-wrap {
+            position: relative;
+            width: min(340px, 88vw);
+            height: min(240px, 62vw);
+            filter: drop-shadow(0 24px 48px #FF6B9D44);
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+            animation: popIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+        }
+
+        .envelope-wrap.dragging {
+            cursor: grabbing;
+        }
+
+        /* SVG envelope */
+        .envelope-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Flap open animation */
+        .env-flap {
+            transform-origin: top center;
+            transform-box: fill-box;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .env-flap.open {
+            transform: rotateX(180deg);
+        }
+
+        /* The letter peeking out */
+        .letter-peek {
+            position: absolute;
+            bottom: 30%;
+            left: 50%;
+            transform: translateX(-50%) translateY(0px);
+            width: 72%;
+            background: white;
+            border-radius: 10px 10px 6px 6px;
+            padding: 12px 14px 8px;
+            box-shadow: 0 -4px 18px #FF6B9D22;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--hot-pink);
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s ease 0.4s, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .letter-peek.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-36px);
+            z-index: 1;
+        }
+
+        .letter-peek .letter-hearts {
+            font-size: 1rem;
+            letter-spacing: 4px;
+        }
+
+        /* Drag progress bar */
+        .drag-bar-wrap {
+            width: min(280px, 80vw);
+            height: 52px;
+            background: white;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            padding: 4px;
+            box-shadow: 0 8px 30px #FF6B9D22;
+            position: relative;
+            overflow: hidden;
+            animation: popIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
+        }
+
+        .drag-bar-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0%;
+            background: linear-gradient(90deg, #FFE0ED, var(--pink));
+            border-radius: 999px;
+            transition: width 0.05s linear;
+        }
+
+        .drag-thumb {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--hot-pink), var(--pink));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            box-shadow: 0 4px 16px #FF2D7866;
+            position: relative;
+            z-index: 2;
+            flex-shrink: 0;
+            margin-left: 0;
+            transition: transform 0.1s;
+            pointer-events: none;
+        }
+
+        .drag-bar-label {
+            position: absolute;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--pink);
+            pointer-events: none;
+            z-index: 3;
+            transition: opacity 0.3s;
+        }
+
+        .drag-bar-label.hidden {
+            opacity: 0;
+        }
+
+        /* ============================
+       VALENTINE CONTENT SCREEN
+    ============================= */
+        #valentine-screen {
+            position: fixed;
+            inset: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            opacity: 0;
+            transform: scale(0.9) translateY(40px);
+            pointer-events: none;
+            transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 5;
+        }
+
+        #valentine-screen.visible {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: all;
+        }
+
+        /* BG for valentine screen */
+        .val-bg {
+            min-height: 100vh;
+            background: var(--cream);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 24px 80px;
+            gap: 36px;
+            position: relative;
+        }
+
+        .val-bg::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: radial-gradient(circle, #FF6B9D22 2px, transparent 2px);
+            background-size: 32px 32px;
+            pointer-events: none;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            animation: popIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .tag {
+            display: inline-block;
+            background: var(--hot-pink);
+            color: white;
+            font-weight: 700;
+            font-size: 0.8rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 6px 18px;
+            border-radius: 999px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 14px #FF2D7844;
+        }
+
+        .header h1 {
+            font-family: 'Pacifico', cursive;
+            font-size: clamp(2.6rem, 8vw, 5rem);
+            line-height: 1.1;
+            background: linear-gradient(135deg, var(--hot-pink) 0%, var(--peach) 60%, var(--lavender) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 4px 8px #FF6B9D44);
+        }
+
+        .header .subtitle {
+            margin-top: 10px;
+            font-size: 1.05rem;
+            color: #FF6B9D;
+            font-weight: 600;
+        }
+
+        /* Big heart */
+        .big-heart {
+            font-size: 5.5rem;
+            animation: heartbeat 1.4s ease-in-out infinite;
+            filter: drop-shadow(0 8px 20px #FF6B9D88);
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes heartbeat {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            14% {
+                transform: scale(1.18);
+            }
+
+            28% {
+                transform: scale(1);
+            }
+
+            42% {
+                transform: scale(1.12);
+            }
+        }
+
+        /* Poem card */
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 36px 36px 40px;
+            max-width: 520px;
+            width: 100%;
+            box-shadow: 0 20px 60px #FF6B9D22;
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+            z-index: 1;
+        }
+
+        .card::after {
+            content: '💌';
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            font-size: 1.8rem;
+            opacity: 0.2;
+        }
+
+        .card-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--pink);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-label::before {
+            content: '';
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: linear-gradient(to right, var(--pink), transparent);
+            border-radius: 99px;
+        }
+
+        .poem {
+            font-size: 1.05rem;
+            line-height: 1.9;
+            color: #5a3550;
+            font-weight: 600;
+            white-space: pre-line;
+        }
+
+        .poem em {
+            color: var(--hot-pink);
+            font-style: normal;
+        }
+
+        /* Stickers */
+        .stickers {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: slideUp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sticker {
+            background: white;
+            border-radius: 18px;
+            padding: 9px 18px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--hot-pink);
+            box-shadow: 0 6px 20px #FF6B9D22;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .sticker:hover,
+        .sticker:active {
+            transform: scale(1.1) rotate(-2deg);
+        }
+
+        .footer-note {
+            font-size: 0.9rem;
+            color: #d4809a;
+            font-weight: 600;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-note span {
+            color: var(--hot-pink);
+        }
+
+        /* ============================
+       FALLING HEARTS
+    ============================= */
+        #hearts-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        #hearts-container.active {
+            opacity: 1;
+        }
+
+        .heart {
+            position: absolute;
+            top: -60px;
+            animation: fall linear infinite;
+            user-select: none;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.9;
+            }
+
+            100% {
+                transform: translateY(110vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* ============================
+       CONFETTI
+    ============================= */
+        .confetti-piece {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 999;
+            animation: confettiBurst 1s ease forwards;
+        }
+
+        @keyframes confettiBurst {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate(var(--tx), var(--ty)) scale(0);
+            }
+        }
+
+        /* ============================
+       SHARED KEYFRAMES
+    ============================= */
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.7);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===== FALLING HEARTS ===== -->
+    <div id="hearts-container"></div>
+
+    <!-- ===== ENVELOPE SCREEN ===== -->
+    <div id="envelope-screen">
+
+        <p class="swipe-hint">
+            <span class="swipe-arrow">👆 swipe right to open 👆</span>
+            <span style="font-size:0.8rem; opacity:0.7;">A little surprise is waiting for you…</span>
+        </p>
+
+        <!-- SVG Envelope -->
+        <div class="envelope-wrap" id="envelopeWrap">
+            <svg class="envelope-svg" viewBox="0 0 340 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Body shadow -->
+                <rect x="4" y="12" width="332" height="220" rx="16" fill="#f8c8d8" opacity="0.5" />
+                <!-- Body -->
+                <rect x="0" y="8" width="332" height="220" rx="16" fill="#fff0f5" />
+                <rect x="0" y="8" width="332" height="220" rx="16" stroke="#ffaacb" stroke-width="2" />
+
+                <!-- Bottom fold lines (V shape on front) -->
+                <path d="M0 228 L166 140 L332 228" fill="#ffd6e7" stroke="#ffaacb" stroke-width="1.5" />
+                <!-- Left fold line -->
+                <path d="M0 8 L166 130 L0 228" fill="#ffe8f2" stroke="#ffaacb" stroke-width="1" />
+                <!-- Right fold line -->
+                <path d="M332 8 L166 130 L332 228" fill="#ffe0ec" stroke="#ffaacb" stroke-width="1" />
+
+                <!-- Seal / wax stamp -->
+                <circle cx="166" cy="140" r="22" fill="url(#sealGrad)" filter="url(#sealShadow)" />
+                <text x="166" y="147" text-anchor="middle" font-size="20">💖</text>
+
+                <!-- Flap (top triangle) — animatable -->
+                <g class="env-flap" id="envFlap">
+                    <path d="M0 8 L166 128 L332 8 Z" fill="#ffd6e7" stroke="#ffaacb" stroke-width="1.5" />
+                    <!-- Flap highlight -->
+                    <path d="M20 8 L166 115 L312 8" stroke="white" stroke-width="1" opacity="0.6" fill="none" />
+                </g>
+
+                <defs>
+                    <radialGradient id="sealGrad" cx="40%" cy="35%" r="65%">
+                        <stop offset="0%" stop-color="#FF6B9D" />
+                        <stop offset="100%" stop-color="#FF2D78" />
+                    </radialGradient>
+                    <filter id="sealShadow" x="-30%" y="-30%" width="160%" height="160%">
+                        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#FF2D78" flood-opacity="0.35" />
+                    </filter>
+                </defs>
+            </svg>
+
+            <!-- Letter peeking out -->
+            <div class="letter-peek" id="letterPeek">
+                <div class="letter-hearts">💕 💖 💕</div>
+                <div style="margin-top:4px; color:#d4609a; font-size:0.75rem;">For My Valentine</div>
+            </div>
+        </div>
+
+        <!-- Swipe drag bar -->
+        <div class="drag-bar-wrap" id="dragBarWrap">
+            <div class="drag-bar-fill" id="dragFill"></div>
+            <div class="drag-thumb" id="dragThumb">💌</div>
+            <div class="drag-bar-label" id="dragLabel">swipe to open →</div>
+        </div>
+
+    </div>
+
+    <!-- ===== VALENTINE SCREEN ===== -->
+    <div id="valentine-screen">
+        <div class="val-bg">
+
+            <div class="header">
+                <div class="tag">✨ February 14 · With love ✨</div>
+                <h1>Happy Valentine's<br />My Valentine!</h1>
+                <p class="subtitle">A little something made just for you 🎀</p>
+            </div>
+
+            <span class="big-heart" id="bigHeart" title="Click me!">💖</span>
+
+            <div class="card">
+                <div class="card-label">A poem for you</div>
+                <p class="poem">You're the sunshine in my day,
+                    The stars that light my night away.
+                    You make me laugh, you make me smile,
+                    You make <em>everything</em> so worthwhile.
+
+                    You're my favorite hello,
+                    My hardest goodbye,
+                    My reason to stay
+                    And reach for the sky.
+
+                    So here's my whole heart,
+                    All wrapped up for you —
+                    My <em>Valentine</em>, forever,
+                    In everything I do. 💕</p>
+            </div>
+
+            <div class="stickers">
+                <div class="sticker">🍓 You're sweet</div>
+                <div class="sticker">🌸 You're my fave</div>
+                <div class="sticker">✨ Simply the best</div>
+                <div class="sticker">🎀 Made for you</div>
+            </div>
+
+            <p class="footer-note">Made with <span>♥</span> especially for you · Happy Valentine's Day!</p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  FALLING HEARTS
+        // ============================================================
+        const heartsContainer = document.getElementById('hearts-container');
+        const emojis = ['💕', '💗', '💓', '💖', '💝', '🌸', '✨', '💘', '🩷', '💞'];
+
+        function spawnHeart() {
+            const el = document.createElement('span');
+            el.className = 'heart';
+            el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            const size = 1 + Math.random() * 1.3;
+            el.style.cssText = `
+    left: ${Math.random() * 100}%;
+    font-size: ${size}rem;
+    animation-duration: ${4 + Math.random() * 5}s;
+    animation-delay: ${Math.random() * 3}s;
+  `;
+            heartsContainer.appendChild(el);
+            setTimeout(() => el.remove(), 10000);
+        }
+
+        // ============================================================
+        //  SWIPE / DRAG TO OPEN
+        // ============================================================
+        const barWrap = document.getElementById('dragBarWrap');
+        const thumb = document.getElementById('dragThumb');
+        const fill = document.getElementById('dragFill');
+        const label = document.getElementById('dragLabel');
+        const flap = document.getElementById('envFlap');
+        const letterPeek = document.getElementById('letterPeek');
+        const envScreen = document.getElementById('envelope-screen');
+        const valScreen = document.getElementById('valentine-screen');
+
+        const THRESHOLD = 0.72;   // 72% swipe triggers open
+        let isDragging = false;
+        let startX = 0;
+        let progress = 0;       // 0 → 1
+
+        function getBarWidth() {
+            return barWrap.getBoundingClientRect().width;
+        }
+
+        function getThumbMaxX() {
+            const barW = getBarWidth();
+            const thumbW = thumb.offsetWidth;
+            const padding = 4;
+            return barW - thumbW - padding * 2;
+        }
+
+        function updateBar(p) {
+            progress = Math.max(0, Math.min(1, p));
+            const maxX = getThumbMaxX();
+            const x = progress * maxX;
+
+            thumb.style.transform = `translateX(${x}px)`;
+            fill.style.width = `${progress * 100}%`;
+
+            // Hide label when dragging
+            if (progress > 0.05) {
+                label.classList.add('hidden');
+            } else {
+                label.classList.remove('hidden');
+            }
+
+            // Flap starts opening at 30% progress
+            if (progress > 0.3) {
+                flap.classList.add('open');
+                letterPeek.classList.add('show');
+            } else {
+                flap.classList.remove('open');
+                letterPeek.classList.remove('show');
+            }
+
+            // Envelope wobble
+            const wobble = progress * 6;
+            document.getElementById('envelopeWrap').style.transform = `rotate(${wobble}deg) scale(${1 + progress * 0.05})`;
+        }
+
+        function openValentine() {
+            // Trigger hearts
+            heartsContainer.classList.add('active');
+            for (let i = 0; i < 18; i++) setTimeout(spawnHeart, i * 160);
+            setInterval(spawnHeart, 600);
+
+            // Confetti burst from center
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 2;
+            spawnConfetti(cx, cy, 32);
+
+            // Transition screens
+            envScreen.classList.add('hiding');
+            setTimeout(() => {
+                envScreen.style.display = 'none';
+                valScreen.classList.add('visible');
+            }, 600);
+        }
+
+        function snapBack() {
+            // Animate back to 0
+            const start = progress;
+            const duration = 350;
+            const startTime = performance.now();
+
+            function animate(now) {
+                const t = Math.min((now - startTime) / duration, 1);
+                const ease = 1 - Math.pow(1 - t, 3);
+                updateBar(start * (1 - ease));
+                if (t < 1) requestAnimationFrame(animate);
+                else updateBar(0);
+            }
+            requestAnimationFrame(animate);
+        }
+
+        // ---- Pointer Events (works for both touch & mouse) ----
+        barWrap.addEventListener('pointerdown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            thumb.style.transition = 'none';
+            fill.style.transition = 'none';
+            barWrap.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        }, { passive: false });
+
+        window.addEventListener('pointermove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const maxX = getThumbMaxX();
+            updateBar(dx / maxX);
+            e.preventDefault();
+        }, { passive: false });
+
+        window.addEventListener('pointerup', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            thumb.style.transition = '';
+            fill.style.transition = '';
+
+            if (progress >= THRESHOLD) {
+                updateBar(1);
+                setTimeout(openValentine, 350);
+            } else {
+                snapBack();
+            }
+        });
+
+        // Also allow swiping on the envelope itself
+        const envWrap = document.getElementById('envelopeWrap');
+        let envSwipeStart = null;
+
+        envWrap.addEventListener('pointerdown', (e) => {
+            envSwipeStart = { x: e.clientX, y: e.clientY };
+            envWrap.setPointerCapture(e.pointerId);
+            e.preventDefault();
+        }, { passive: false });
+
+        envWrap.addEventListener('pointermove', (e) => {
+            if (!envSwipeStart) return;
+            const dx = e.clientX - envSwipeStart.x;
+            const maxX = getBarWidth() * 0.6;
+            updateBar(Math.max(0, dx) / maxX);
+            e.preventDefault();
+        }, { passive: false });
+
+        envWrap.addEventListener('pointerup', () => {
+            if (!envSwipeStart) return;
+            envSwipeStart = null;
+            if (progress >= THRESHOLD) {
+                updateBar(1);
+                setTimeout(openValentine, 350);
+            } else {
+                snapBack();
+            }
+        });
+
+        // ============================================================
+        //  CONFETTI BURST
+        // ============================================================
+        function spawnConfetti(cx, cy, count) {
+            const colors = ['#FF6B9D', '#FF2D78', '#FFB347', '#C9A0F5', '#FF9EC4', '#fff'];
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                const angle = (i / count) * 360 + Math.random() * 15;
+                const dist = 80 + Math.random() * 100;
+                const tx = Math.cos(angle * Math.PI / 180) * dist + 'px';
+                const ty = Math.sin(angle * Math.PI / 180) * dist + 'px';
+                piece.style.cssText = `
+      left: ${cx - 5}px;
+      top: ${cy - 5}px;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      --tx: ${tx};
+      --ty: ${ty};
+      animation-duration: ${0.6 + Math.random() * 0.5}s;
+    `;
+                document.body.appendChild(piece);
+                setTimeout(() => piece.remove(), 1200);
+            }
+        }
+
+        // ============================================================
+        //  BIG HEART CLICK
+        // ============================================================
+        document.getElementById('bigHeart').addEventListener('click', function (e) {
+            spawnConfetti(e.clientX, e.clientY, 20);
+            this.style.transform = 'scale(1.4)';
+            setTimeout(() => this.style.transform = '', 300);
+        });
+    </script>
+</body>
+
+</html>
