@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>GeoQuest — Real Map Explorer</title>
+<title>EDURUN — Online mapa</title>
 
 <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
@@ -218,18 +218,18 @@
 <body>
 
 <header>
-  <div class="logo">GEOQUEST</div>
+  <div class="logo">EDURUN</div>
   <div class="hud">
     <div class="hud-item">
-      <div class="hud-label">Score</div>
+      <div class="hud-label">Skóre</div>
       <div class="hud-val cyan" id="hScore">0</div>
     </div>
     <div class="hud-item">
-      <div class="hud-label">Orbs</div>
+      <div class="hud-label">Body</div>
       <div class="hud-val orange" id="hOrbs">0</div>
     </div>
     <div class="hud-item">
-      <div class="hud-label">Dist</div>
+      <div class="hud-label">Cesta</div>
       <div class="hud-val gold" id="hDist">0m</div>
     </div>
   </div>
@@ -238,22 +238,22 @@
 <div id="map"></div>
 
 <div class="bottom">
-  <button class="btn" id="btnStart" onclick="startRun()">▶ START</button>
-  <button class="btn" id="btnPause" onclick="togglePause()" disabled>⏸ PAUSE</button>
-  <button class="btn red" id="btnEnd" onclick="endRun()" disabled>■ END</button>
-  <div class="status" id="status">Press START — location access required</div>
+  <button class="btn" id="btnStart" onclick="startRun()">▶ Začít</button>
+  <button class="btn" id="btnPause" onclick="togglePause()" disabled>⏸ Pozastavit</button>
+  <button class="btn red" id="btnEnd" onclick="endRun()" disabled>■ Ukončit</button>
+  <div class="status" id="status">Stiskni ZAČÍT — povolení k poloze</div>
 </div>
 
 <div id="toast"></div>
 
 <div id="modal">
   <div class="modal-box">
-    <div class="modal-title">MISSION COMPLETE</div>
-    <div class="modal-stat">Score — <b id="mScore">0</b></div>
-    <div class="modal-stat">Orbs Collected — <b id="mOrbs">0</b></div>
-    <div class="modal-stat">Distance — <b id="mDist">0m</b></div>
-    <div class="modal-stat">Duration — <b id="mTime">0:00</b></div>
-    <button class="btn" onclick="newGame()" style="width:100%;margin-top:18px">▶ NEW RUN</button>
+    <div class="modal-title">MISE KOMPLETNÍ</div>
+    <div class="modal-stat">Skóre — <b id="mScore">0</b></div>
+    <div class="modal-stat">Získané body — <b id="mOrbs">0</b></div>
+    <div class="modal-stat">Cesta — <b id="mDist">0m</b></div>
+    <div class="modal-stat">Cesta trvala — <b id="mTime">0:00</b></div>
+    <button class="btn" onclick="newGame()" style="width:100%;margin-top:18px">▶ Začít znovu</button>
   </div>
 </div>
 
@@ -284,7 +284,7 @@ const startIcon = L.divIcon({
 });
 const startMarker = L.marker([START_LAT, START_LNG], { icon: startIcon })
   .addTo(map)
-  .bindPopup(`<b style="font-family:Orbitron,monospace;color:#a855f7">START POINT</b><br>Tyršova 34, Opava`, { className: '' });
+  .bindPopup(`<b style="font-family:Orbitron,monospace;color:#a855f7">ZAČÍNAJÍCÍ BOD</b><br>Tyršova 34, Opava`, { className: '' });
 
 // OpenStreetMap tiles
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -375,19 +375,19 @@ document.head.appendChild(style);
 // ─────────────────────────────────────────
 function startRun() {
   if (!navigator.geolocation) {
-    toast('NO GPS — try on mobile'); return;
+    toast('ŽADNÁ GPS — zkuste na mobilu'); return;
   }
-  setStatus('📡 Acquiring GPS signal...');
+  setStatus('📡 Hledáme GPS signál...');
   navigator.geolocation.getCurrentPosition(pos => {
     const { latitude: lat, longitude: lng, accuracy } = pos.coords;
     initRun(lat, lng);
     G.watchId = navigator.geolocation.watchPosition(onGPS, onGPSErr,
       { enableHighAccuracy: true, maximumAge: 2000, timeout: 15000 });
   }, err => {
-    setStatus('GPS failed: ' + err.message);
-    toast('GPS ERROR — enable location');
+    setStatus('GPS nenalezena: ' + err.message);
+    toast('GPS CHYBA — zamítnutý signál');
   }, { enableHighAccuracy: true, timeout: 12000 });
-  setStatus('📡 Acquiring GPS signal...');
+  setStatus('📡 Hledáme GPS signál...');
 }
 
 // fallback: centre on start point while waiting
@@ -466,8 +466,8 @@ function initRun(lat, lng) {
   document.getElementById('btnEnd').disabled = false;
 
   spawnOrbs(lat, lng, 14);
-  toast('RUN STARTED — GO!');
-  setStatus('Collecting orbs...');
+  toast('EDURUN začal — JDI!');
+  setStatus('Posbíral jsi bod...');
 }
 
 // ─────────────────────────────────────────
@@ -570,7 +570,7 @@ function newGame() {
   document.getElementById('btnEnd').disabled = true;
   document.getElementById('btnPause').textContent = '⏸ PAUSE';
   updateHUD();
-  setStatus('Press START — location access required');
+  setStatus('Stiskni ZAČÍT — povolení k poloze');
 }
 
 // ─────────────────────────────────────────
